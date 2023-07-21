@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { Space, Table, Button, Checkbox, Form, Input } from "antd";
 import { useDispatch, useSelector } from "react-redux";
-import { adddata, removedata } from "../store/SliceData";
+import { adddata, removedata, updatedata } from "../store/SliceData";
 const { Column } = Table;
-
 
 const onFinishFailed = (errorInfo) => {
   console.log("Failed:", errorInfo);
@@ -12,6 +11,8 @@ const onFinishFailed = (errorInfo) => {
 const Home_data = () => {
   const [form] = Form.useForm();
   const [allfachData, setAllfachData] = useState("");
+  const [Editbtn, setEditbtn] = useState(true);
+  const [eid, setEid] = useState("");
   const dispatch = useDispatch();
 
   const data = useSelector((start) => {
@@ -22,21 +23,45 @@ const Home_data = () => {
     dispatch(removedata(record));
   };
 
+  const Editdata = (record) => {
+    form.setFieldsValue({ email: record.email, password: record.password });
+    setEid(record.id)
+    setEditbtn(false);
+  };
+
   console.log(data, "usersdata");
   const FormSubmit = (values) => {
-    console.log(values, "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv");
+
     const NewfachData = { id: allfachData.length + 1 };
 
-    setAllfachData([...allfachData, NewfachData]);
-    dispatch(
-      adddata({
-        id: allfachData.length + 1,
+    if (!Editbtn) {
+      dispatch(
+        updatedata({
+          id: eid,
+          email: values.email,
+          password: values.password,
+        })
+      );
+      console.log(({
+        id: eid,
         email: values.email,
         password: values.password,
-      })
-    );
-    form.resetFields();
+      }),"uuuuuuuuuuuuuuuuuuuuuuu")
+      setEditbtn(true);
+      form.resetFields();
+    } else if (Editbtn) {
+      setAllfachData([...allfachData, NewfachData]);
+      dispatch(
+        adddata({
+          id: allfachData.length + 1 ,
+          email: values.email,
+          password: values.password,
+        })
+      );
+      form.resetFields();
+    }
   };
+
   return (
     <div className="App">
       <header className="App-header">
@@ -71,10 +96,26 @@ const Home_data = () => {
               <Input.Password />
             </Form.Item>
 
-            <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-              <Button type="primary" htmlType="submit">
-                Submit
-              </Button>
+            <Form.Item>
+              {Editbtn ? (
+                <Button
+                  id="login-btn"
+                  type="primary"
+                  htmlType="submit"
+                  className="login-form-button"
+                >
+                  Log in
+                </Button>
+              ) : (
+                <Button
+                  id="login-btn"
+                  type="primary"
+                  htmlType="submit"
+                  className="login-form-button"
+                >
+                  Edit
+                </Button>
+              )}
             </Form.Item>
           </Form>
         </div>
@@ -89,7 +130,7 @@ const Home_data = () => {
                 key="action"
                 render={(record) => (
                   <Space size="middle">
-                    <Button>Edit</Button>
+                    <Button onClick={() => Editdata(record)}>Edit</Button>
                     <Button onClick={() => deletedata(record)}>Delete</Button>
                   </Space>
                 )}
